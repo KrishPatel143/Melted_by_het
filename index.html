@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Melted by HeT — Handcrafted Candles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:        #C9A84C;
+      --gold-mid:    rgba(201,168,76,0.42);
+      --gold-faint:  rgba(201,168,76,0.09);
+      --black:       #0a0a0a;
+      --black-warm:  #0e0c09;
+      --cream:       #f7f4ef;
+      --white:       #f5f2ed;
+      --white-dim:   rgba(245,242,237,0.52);
+      --white-faint: rgba(245,242,237,0.06);
+      --ff-serif:    'Cormorant Garamond', Georgia, serif;
+      --ff-sans:     'DM Sans', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--ff-sans);
+      font-weight: 300;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Grain */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.026;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Scroll progress ── */
+    .scroll-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(to right, var(--gold), rgba(201,168,76,0.6));
+      z-index: 10001;
+      pointer-events: none;
+      transition: width 0.05s linear;
+    }
+
+    /* ── Custom cursor (desktop only) ── */
+    .cursor-dot {
+      position: fixed;
+      width: 6px; height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 30px; height: 30px;
+      border: 1px solid rgba(201,168,76,0.38);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      display: none;
+      transition: width 0.35s, height 0.35s, border-color 0.35s;
+    }
+    .has-mouse .cursor-dot,
+    .has-mouse .cursor-ring  { display: block; }
+    .has-mouse               { cursor: none !important; }
+    .has-mouse a,
+    .has-mouse button        { cursor: none !important; }
+    /* cursor grows on hover */
+    .has-mouse .cursor-ring.on-link {
+      width: 52px; height: 52px;
+      border-color: rgba(201,168,76,0.65);
+    }
+
+    /* ── Curtain reveal (text rises from hidden) ── */
+    .ct { overflow: hidden; display: block; }
+    .ct-inner {
+      display: block;
+      transform: translateY(108%);
+      transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ct.show .ct-inner { transform: translateY(0); }
+    .ct-d1 .ct-inner { transition-delay: 0.1s; }
+    .ct-d2 .ct-inner { transition-delay: 0.2s; }
+    .ct-d3 .ct-inner { transition-delay: 0.32s; }
+    .ct-d4 .ct-inner { transition-delay: 0.46s; }
+
+    /* ── Card entrance (scale + fade) ── */
+    .card-in {
+      opacity: 0;
+      transform: scale(0.96) translateY(28px);
+      transition: opacity 1s cubic-bezier(.25,.1,.25,1),
+                  transform 1.2s cubic-bezier(.16,1,.3,1);
+    }
+    .card-in.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* ── Generic fade-up (non-card sections) ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.9s cubic-bezier(.25,.1,.25,1),
+                  transform 0.9s cubic-bezier(.25,.1,.25,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+
+    /* ═══════════════════════════════
+       HERO
+    ═══════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 28px 60px;
+      overflow: hidden;
+      background: var(--black);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      bottom: -15%; left: 50%;
+      transform: translateX(-50%);
+      width: 70vw; height: 55vh;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.065) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-logo {
+      margin-bottom: clamp(44px, 7vh, 76px);
+      opacity: 0;
+      animation: aFadeDown 1.1s cubic-bezier(.25,.1,.25,1) .15s forwards;
+    }
+    .hero-logo img { width: clamp(100px, 22vw, 158px); display: block; }
+
+    .hero-headline {
+      font-family: var(--ff-serif);
+      font-size: clamp(58px, 11.5vw, 118px);
+      font-weight: 300;
+      line-height: 0.92;
+      letter-spacing: -0.015em;
+      color: var(--white);
+      margin-bottom: clamp(22px, 3.5vh, 36px);
+    }
+    .hero-headline .hl  { display: block; overflow: hidden; }
+    .hero-headline .hli {
+      display: block;
+      opacity: 0;
+      transform: translateY(110%);
+      animation: aSlideUp 1s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .hero-headline .hl:nth-child(1) .hli { animation-delay: 0.45s; }
+    .hero-headline .hl:nth-child(2) .hli { animation-delay: 0.63s; }
+
+    .hero-sub-wrap {
+      margin-bottom: clamp(32px, 5vh, 52px);
+      opacity: 0;
+      animation: aFadeIn 1s ease 1.1s forwards;
+    }
+    .hero-sub {
+      font-size: clamp(12px, 1.7vw, 14px);
+      font-weight: 300;
+      letter-spacing: 0.09em;
+      color: var(--white-dim);
+      line-height: 1.7;
+    }
+    .gold-line {
+      display: block; height: 1px;
+      background: var(--gold);
+      margin-top: 14px;
+      transform-origin: left;
+      transform: scaleX(0);
+      animation: aLineGrow 1.1s cubic-bezier(.16,1,.3,1) 1.55s forwards;
+    }
+
+    .hero-cta {
+      opacity: 0;
+      animation: aFadeIn 1s ease 1.85s forwards;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 40px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: var(--ff-sans);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      background: transparent;
+      position: relative;
+      overflow: hidden;
+      transition: color .4s ease;
+    }
+    .btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .4s cubic-bezier(.16,1,.3,1);
+    }
+    .btn:hover::before { transform: scaleX(1); }
+    .btn:hover         { color: var(--black); }
+    .btn span          { position: relative; z-index: 1; }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 36px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 10px;
+      opacity: 0;
+      animation: aFadeIn 1s ease 2.4s forwards;
+    }
+    .hero-scroll-text {
+      font-size: 9px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--gold-mid);
+    }
+    .hero-scroll-bar {
+      width: 1px; height: 36px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: aPulse 2.2s ease-in-out 2.4s infinite;
+    }
+
+
+    /* ═══════════════════════════════
+       BRAND STRIP
+    ═══════════════════════════════ */
+    .brand-strip {
+      padding: clamp(72px, 12vh, 120px) clamp(28px, 8vw, 100px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-strip::before,
+    .brand-strip::after {
+      content: '';
+      position: absolute;
+      left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold-mid), transparent);
+    }
+    .brand-strip::before { top: 0; }
+    .brand-strip::after  { bottom: 0; }
+
+    /* huge decorative serif in the background */
+    .brand-strip-deco {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--ff-serif);
+      font-size: clamp(140px, 35vw, 320px);
+      font-weight: 300;
+      color: var(--gold);
+      opacity: 0.028;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: -0.05em;
+    }
+
+    .brand-statement {
+      font-family: var(--ff-serif);
+      font-size: clamp(20px, 3.8vw, 40px);
+      font-weight: 300;
+      line-height: 1.65;
+      color: var(--white);
+      max-width: 820px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .brand-statement em { font-style: normal; color: var(--gold); }
+
+
+    /* ═══════════════════════════════
+       MARQUEE DIVIDER
+    ═══════════════════════════════ */
+    .marquee-divider {
+      overflow: hidden;
+      padding: 13px 0;
+      border-top: 1px solid var(--gold-faint);
+      border-bottom: 1px solid var(--gold-faint);
+      background: var(--black-warm);
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: aTicker 28s linear infinite;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    .marquee-track span {
+      white-space: nowrap;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold-mid);
+      padding-right: 80px;
+      font-family: var(--ff-sans);
+    }
+    .marquee-track .m-dot {
+      color: var(--gold);
+      padding-right: 80px;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+
+    /* ═══════════════════════════════
+       PRODUCTS
+    ═══════════════════════════════ */
+    .products {
+      padding: clamp(52px, 8vh, 88px) 0;
+    }
+
+    .products-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 clamp(24px, 5.5vw, 52px);
+      margin-bottom: clamp(40px, 6vh, 60px);
+    }
+    .products-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 300;
+    }
+    .products-eyebrow-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--gold-faint), transparent);
+    }
+
+    .product-card {
+      margin-bottom: 2px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Product image: fixed height, NOT aspect-ratio ── */
+    .product-img-wrap {
+      width: 100%;
+      height: clamp(240px, 54vw, 360px);
+      overflow: hidden;
+      background: var(--cream);
+      position: relative;
+    }
+    .parallax-img {
+      width: 100%;
+      height: 125%; /* extra height lets JS shift without gaps */
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      transform: translateY(0);
+      will-change: transform;
+    }
+    /* vignette at bottom */
+    .product-img-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(10,10,10,0.28) 100%);
+      pointer-events: none;
+    }
+
+    /* ── Product info ── */
+    .product-info {
+      background: var(--black-warm);
+      padding: clamp(22px, 4vw, 40px) clamp(24px, 5.5vw, 52px);
+      border-top: 1px solid var(--gold-faint);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* giant faint number behind product name */
+    .product-bg-num {
+      position: absolute;
+      top: -0.08em; right: -0.04em;
+      font-family: var(--ff-serif);
+      font-size: clamp(110px, 32vw, 260px);
+      font-weight: 300;
+      color: var(--gold);
+      opacity: 0.05;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+      transition: opacity 0.6s ease;
+    }
+    .product-card:hover .product-bg-num { opacity: 0.09; }
+
+    .product-name-wrap { position: relative; z-index: 1; }
+    .product-name {
+      font-family: var(--ff-serif);
+      font-size: clamp(34px, 7vw, 60px);
+      font-weight: 400;
+      color: var(--white);
+      letter-spacing: 0.01em;
+      line-height: 1.08;
+      margin-bottom: 10px;
+    }
+    .product-scent {
+      font-family: var(--ff-serif);
+      font-style: italic;
+      font-size: clamp(13px, 1.8vw, 15px);
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+      position: relative; z-index: 1;
+    }
+    .product-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative; z-index: 1;
+    }
+    .product-price {
+      font-family: var(--ff-serif);
+      font-size: clamp(22px, 3.5vw, 30px);
+      color: var(--gold);
+      font-weight: 400;
+    }
+    .product-add {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--ff-sans);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      position: relative;
+      padding-bottom: 4px;
+    }
+    .product-add::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: var(--gold);
+      transform: scaleX(0.36);
+      transform-origin: left;
+      transition: transform .5s cubic-bezier(.16,1,.3,1);
+    }
+    .product-add:hover::after { transform: scaleX(1); }
+
+    /* ── Desktop: left/right alternating layout ── */
+    @media (min-width: 768px) {
+      .product-card {
+        flex-direction: row;
+        min-height: 480px;
+        border-bottom: 1px solid var(--gold-faint);
+      }
+      .product-card.alt { flex-direction: row-reverse; }
+
+      .product-card .product-img-wrap {
+        flex: 0 0 54%;
+        height: auto;        /* let flex row determine height */
+        min-height: 480px;
+      }
+      .product-card .parallax-img { height: 115%; }
+
+      .product-card .product-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(44px, 5.5vw, 80px) clamp(36px, 5.5vw, 72px);
+        border-top: none;
+        border-left: 1px solid var(--gold-faint);
+      }
+      .product-card.alt .product-info {
+        border-left: none;
+        border-right: 1px solid var(--gold-faint);
+      }
+
+      .product-card .product-name {
+        font-size: clamp(42px, 5vw, 74px);
+      }
+      .product-card .product-scent {
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--gold-faint);
+      }
+
+      /* ── Desktop entrance: override mobile scale+fade ── */
+      .card-in {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+
+      /* Image: clip-path curtain wipe from its entering edge */
+      .card-in:not(.alt) .product-img-wrap {
+        clip-path: inset(0 100% 0 0);
+        transition: clip-path 1.35s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .card-in.alt .product-img-wrap {
+        clip-path: inset(0 0 0 100%);
+        transition: clip-path 1.35s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .card-in.show .product-img-wrap {
+        clip-path: inset(0 0% 0 0%);
+      }
+
+      /* Info: slides in from opposite side with a delay */
+      .card-in .product-info {
+        opacity: 0;
+        transition: opacity 0.9s ease 0.28s,
+                    transform 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.28s;
+      }
+      .card-in:not(.alt) .product-info { transform: translateX(52px); }
+      .card-in.alt        .product-info { transform: translateX(-52px); }
+      .card-in.show .product-info {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+
+    /* ═══════════════════════════════
+       FEATURE BLOCKS
+    ═══════════════════════════════ */
+    .features { padding: clamp(52px, 8vh, 88px) 0; }
+
+    .feature-block {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 2px;
+    }
+    @media (min-width: 768px) {
+      .feature-block          { flex-direction: row; min-height: 480px; }
+      .feature-block.flip     { flex-direction: row-reverse; }
+      /* intentionally not 50/50 — breaks the grid */
+      .feature-block .feature-img  { flex: 0 0 55%; }
+      .feature-block.flip .feature-img { flex: 0 0 58%; }
+      .feature-block .feature-text { flex: 1; }
+    }
+
+    .feature-img {
+      min-height: 280px;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 768px) { .feature-img { min-height: auto; } }
+
+    .feature-img-1 {
+      background:
+        radial-gradient(ellipse 55% 70% at 45% 50%, #1e0c03 0%, #100602 40%, #0a0a0a 75%),
+        radial-gradient(ellipse 30% 40% at 75% 25%, #160e05 0%, transparent 60%);
+    }
+    .feature-img-2 {
+      background:
+        radial-gradient(ellipse 50% 65% at 55% 45%, #060f0a 0%, #040907 40%, #0a0a0a 75%),
+        radial-gradient(ellipse 25% 35% at 25% 70%, #0a1208 0%, transparent 60%);
+    }
+    .feature-img::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 45%; height: 45%;
+      background: radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .feature-img::after {
+      content: '';
+      position: absolute;
+      top: 28%; left: 50%;
+      transform: translateX(-50%);
+      width: 2px; height: 22px;
+      background: linear-gradient(to bottom, var(--gold), rgba(201,168,76,0.4), transparent);
+      border-radius: 2px;
+      box-shadow: 0 0 18px 7px rgba(201,168,76,0.22), 0 0 50px 18px rgba(201,168,76,0.08);
+      animation: aFlicker 3.5s ease-in-out infinite;
+    }
+
+    .feature-text {
+      padding: clamp(44px, 7vw, 80px) clamp(28px, 6vw, 72px);
+      background: var(--black);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .feature-num {
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      color: var(--gold-mid);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .feature-title {
+      font-family: var(--ff-serif);
+      font-size: clamp(26px, 3.8vw, 44px);
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+    .feature-body {
+      font-size: clamp(13px, 1.4vw, 15px);
+      line-height: 1.85;
+      color: var(--white-dim);
+      max-width: 380px;
+    }
+
+
+    /* ═══════════════════════════════
+       OUR STORY
+    ═══════════════════════════════ */
+    .story { position: relative; }
+
+    .story-photo {
+      width: 100%;
+      height: clamp(300px, 75vw, 560px);
+      overflow: hidden;
+      position: relative;
+    }
+    @media (min-width: 768px) { .story-photo { height: 60vw; max-height: 600px; } }
+
+    .story-photo img {
+      width: 100%;
+      height: 120%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      transform: translateY(0);
+      will-change: transform;
+    }
+    .story-photo::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(10,10,10,0.05) 0%, rgba(10,10,10,0.7) 100%);
+    }
+
+    .story-content {
+      padding: clamp(40px, 7vh, 76px) clamp(28px, 6vw, 88px);
+      background: var(--black-warm);
+    }
+    .story-label {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 28px;
+    }
+    .story-quote {
+      font-family: var(--ff-serif);
+      font-size: clamp(19px, 3.2vw, 32px);
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--white);
+      margin-bottom: 28px;
+      max-width: 680px;
+    }
+    .story-attr { font-size: 13px; letter-spacing: 0.1em; color: var(--white-dim); }
+    .story-attr strong { font-weight: 400; color: var(--gold); }
+
+
+    /* ═══════════════════════════════
+       TESTIMONIALS
+    ═══════════════════════════════ */
+    .testimonials { padding: clamp(52px, 8vh, 88px) 0; overflow: hidden; }
+
+    .testi-head {
+      padding: 0 clamp(28px, 6vw, 88px);
+      margin-bottom: 40px;
+      display: flex; align-items: flex-end;
+      justify-content: space-between; gap: 20px;
+    }
+    .testi-title {
+      font-family: var(--ff-serif);
+      font-size: clamp(26px, 3.8vw, 44px);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .testi-nav { display: flex; gap: 10px; }
+    .nav-btn {
+      width: 42px; height: 42px;
+      border: 1px solid var(--gold-mid);
+      background: none; color: var(--gold);
+      cursor: pointer; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .3s, border-color .3s;
+    }
+    .nav-btn:hover { background: var(--gold-faint); border-color: var(--gold); }
+
+    .testi-viewport {
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      cursor: grab;
+    }
+    .testi-viewport:active { cursor: grabbing; }
+    .testi-viewport::-webkit-scrollbar { display: none; }
+
+    .testi-track {
+      display: flex; gap: 2px;
+      padding: 0 clamp(28px, 6vw, 88px);
+    }
+    .testi-card {
+      flex: 0 0 min(82vw, 460px);
+      scroll-snap-align: start;
+      padding: clamp(28px, 4.5vw, 44px);
+      background: var(--black-warm);
+      border: 1px solid var(--gold-faint);
+      position: relative;
+    }
+    .testi-card::before {
+      content: '\201C';
+      position: absolute; top: 10px; right: 20px;
+      font-family: var(--ff-serif); font-size: 72px;
+      color: var(--gold); opacity: 0.09; line-height: 1;
+    }
+    .stars { display: flex; gap: 4px; margin-bottom: 16px; }
+    .stars span { color: var(--gold); font-size: 11px; }
+    .testi-text {
+      font-family: var(--ff-serif);
+      font-size: clamp(15px, 2.2vw, 19px);
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+    .testi-author { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white-dim); }
+    .testi-author span { color: var(--gold); }
+
+
+    /* ═══════════════════════════════
+       FOOTER
+    ═══════════════════════════════ */
+    footer {
+      padding: clamp(56px, 9vh, 96px) clamp(28px, 6vw, 88px) clamp(28px, 4vh, 44px);
+      border-top: 1px solid var(--gold-faint);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 44px;
+      margin-bottom: 52px;
+    }
+    @media (min-width: 560px)  { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 960px)  { .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+
+    .footer-logo img { width: clamp(68px, 13vw, 96px); margin-bottom: 14px; }
+    .footer-tagline {
+      font-family: var(--ff-serif);
+      font-style: italic; font-size: 15px;
+      color: var(--white-dim); line-height: 1.65;
+    }
+    .footer-col-head {
+      font-size: 9px; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold-mid); margin-bottom: 16px;
+    }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { font-size: 13px; color: var(--white-dim); text-decoration: none; transition: color .3s; }
+    .footer-links a:hover { color: var(--gold); }
+
+    .footer-bottom {
+      display: flex; flex-direction: column; gap: 16px;
+      padding-top: 32px;
+      border-top: 1px solid var(--white-faint);
+    }
+    @media (min-width: 560px) {
+      .footer-bottom { flex-direction: row; align-items: center; justify-content: space-between; }
+    }
+    .footer-copy { font-size: 11px; color: rgba(245,242,237,0.26); letter-spacing: 0.04em; }
+    .social-row { display: flex; gap: 20px; }
+    .social-row a {
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--white-dim); text-decoration: none; transition: color .3s;
+    }
+    .social-row a:hover { color: var(--gold); }
+
+
+    /* ═══════════════════════════════
+       KEYFRAMES
+    ═══════════════════════════════ */
+    @keyframes aFadeDown {
+      from { opacity: 0; transform: translateY(-14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes aSlideUp {
+      from { opacity: 0; transform: translateY(110%); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes aFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes aLineGrow {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+    @keyframes aPulse {
+      0%, 100% { opacity: 1; transform: scaleY(1); }
+      50%       { opacity: 0.4; transform: scaleY(0.6); }
+    }
+    @keyframes aFlicker {
+      0%, 100% { opacity: 1;    transform: translateX(-50%) scaleX(1); }
+      33%      { opacity: 0.82; transform: translateX(-48%) scaleX(0.88); }
+      66%      { opacity: 0.94; transform: translateX(-52%) scaleX(1.08); }
+    }
+    @keyframes aTicker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- scroll progress -->
+<div class="scroll-bar" id="scrollBar"></div>
+
+<!-- custom cursor -->
+<div class="cursor-dot"  id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="home">
+  <div class="hero-logo">
+    <img src="LOGO.png" alt="Melted by HeT">
+  </div>
+
+  <h1 class="hero-headline">
+    <span class="hl"><span class="hli">Burn Slow.</span></span>
+    <span class="hl"><span class="hli">Live Present.</span></span>
+  </h1>
+
+  <div class="hero-sub-wrap">
+    <p class="hero-sub">Hand-poured candles for the moments that deserve to be remembered.</p>
+    <span class="gold-line"></span>
+  </div>
+
+  <div class="hero-cta">
+    <a href="#collection" class="btn"><span>Explore the Collection</span></a>
+  </div>
+
+  <div class="hero-scroll">
+    <span class="hero-scroll-text">Scroll</span>
+    <div class="hero-scroll-bar"></div>
+  </div>
+</section>
+
+
+<!-- ═══ BRAND STRIP ═══ -->
+<section class="brand-strip">
+  <div class="brand-strip-deco" aria-hidden="true">MH</div>
+  <p class="brand-statement reveal">
+    Every candle is made by hand, in small batches,<br>
+    with one intention — to make <em>your space</em> feel like yours.
+  </p>
+</section>
+
+
+<!-- ═══ PRODUCTS ═══ -->
+<section class="products" id="collection">
+  <div class="products-header reveal">
+    <span class="products-eyebrow">The Collection</span>
+    <div class="products-eyebrow-line"></div>
+  </div>
+
+  <!-- 01 Imperial Bloom -->
+  <article class="product-card card-in">
+    <div class="product-img-wrap">
+      <img src="Imperial%20bloom-699.jpeg" class="parallax-img" alt="Imperial Bloom" loading="lazy">
+    </div>
+    <div class="product-info">
+      <span class="product-bg-num" aria-hidden="true">01</span>
+      <div class="product-name-wrap">
+        <div class="ct"><h2 class="product-name ct-inner">Imperial Bloom</h2></div>
+      </div>
+      <p class="product-scent">Rose · Jasmine · White Musk</p>
+      <div class="product-foot">
+        <span class="product-price" data-target="699">₹699</span>
+        <button class="product-add">Add to Cart</button>
+      </div>
+    </div>
+  </article>
+
+  <!-- 02 Velvet Rose -->
+  <article class="product-card card-in alt">
+    <div class="product-img-wrap">
+      <img src="Velvet%20rose%20-599.jpeg" class="parallax-img" alt="Velvet Rose" loading="lazy">
+    </div>
+    <div class="product-info">
+      <span class="product-bg-num" aria-hidden="true">02</span>
+      <div class="product-name-wrap">
+        <div class="ct"><h2 class="product-name ct-inner">Velvet Rose</h2></div>
+      </div>
+      <p class="product-scent">Rose · Geranium · Amber</p>
+      <div class="product-foot">
+        <span class="product-price" data-target="599">₹599</span>
+        <button class="product-add">Add to Cart</button>
+      </div>
+    </div>
+  </article>
+
+  <!-- 03 Sunflower -->
+  <article class="product-card card-in">
+    <div class="product-img-wrap">
+      <img src="Sunflower%20dough%20bowl%20candle-749.jpeg" class="parallax-img" alt="Sunflower Dough Bowl" loading="lazy">
+    </div>
+    <div class="product-info">
+      <span class="product-bg-num" aria-hidden="true">03</span>
+      <div class="product-name-wrap">
+        <div class="ct"><h2 class="product-name ct-inner">Sunflower Dough Bowl</h2></div>
+      </div>
+      <p class="product-scent">Citrus · Vanilla · Warm Wood</p>
+      <div class="product-foot">
+        <span class="product-price" data-target="749">₹749</span>
+        <button class="product-add">Add to Cart</button>
+      </div>
+    </div>
+  </article>
+
+  <!-- 04 Cold Brew -->
+  <article class="product-card card-in alt">
+    <div class="product-img-wrap">
+      <img src="Cold%20brew%20cozy-%20449.jpeg" class="parallax-img" alt="Cold Brew Cozy" loading="lazy">
+    </div>
+    <div class="product-info">
+      <span class="product-bg-num" aria-hidden="true">04</span>
+      <div class="product-name-wrap">
+        <div class="ct"><h2 class="product-name ct-inner">Cold Brew Cozy</h2></div>
+      </div>
+      <p class="product-scent">Coffee · Caramel · Mocha</p>
+      <div class="product-foot">
+        <span class="product-price" data-target="449">₹449</span>
+        <button class="product-add">Add to Cart</button>
+      </div>
+    </div>
+  </article>
+
+  <!-- 05 White Petal -->
+  <article class="product-card card-in">
+    <div class="product-img-wrap">
+      <img src="White%20petal%20oasis-499.jpeg" class="parallax-img" alt="White Petal Oasis" loading="lazy">
+    </div>
+    <div class="product-info">
+      <span class="product-bg-num" aria-hidden="true">05</span>
+      <div class="product-name-wrap">
+        <div class="ct"><h2 class="product-name ct-inner">White Petal Oasis</h2></div>
+      </div>
+      <p class="product-scent">White Tea · Peony · Soft Musk</p>
+      <div class="product-foot">
+        <span class="product-price" data-target="499">₹499</span>
+        <button class="product-add">Add to Cart</button>
+      </div>
+    </div>
+  </article>
+</section>
+
+
+<!-- ═══ MARQUEE DIVIDER ═══ -->
+<div class="marquee-divider">
+  <div class="marquee-track">
+    <span>Hand-poured</span><span class="m-dot">·</span>
+    <span>Small Batch</span><span class="m-dot">·</span>
+    <span>Made with Intention</span><span class="m-dot">·</span>
+    <span>Clean Burn</span><span class="m-dot">·</span>
+    <span>No Shortcuts</span><span class="m-dot">·</span>
+    <span>Crafted by HeT</span><span class="m-dot">·</span>
+    <span>Hand-poured</span><span class="m-dot">·</span>
+    <span>Small Batch</span><span class="m-dot">·</span>
+    <span>Made with Intention</span><span class="m-dot">·</span>
+    <span>Clean Burn</span><span class="m-dot">·</span>
+    <span>No Shortcuts</span><span class="m-dot">·</span>
+    <span>Crafted by HeT</span><span class="m-dot">·</span>
+  </div>
+</div>
+
+
+<!-- ═══ FEATURE BLOCKS ═══ -->
+<section class="features">
+
+  <div class="feature-block reveal">
+    <div class="feature-img feature-img-1"></div>
+    <div class="feature-text">
+      <p class="feature-num">01 — Craftsmanship</p>
+      <h3 class="feature-title">
+        <span class="ct ct-d1"><span class="ct-inner">Small Batch.</span></span>
+        <span class="ct ct-d2"><span class="ct-inner">Every Time.</span></span>
+      </h3>
+      <p class="feature-body">We cap each pour at 50 units. Once it's gone, it's gone. No restocks. No compromises. Just candles made slowly, with intention.</p>
+    </div>
+  </div>
+
+  <div class="feature-block flip reveal">
+    <div class="feature-img feature-img-2"></div>
+    <div class="feature-text">
+      <p class="feature-num">02 — Integrity</p>
+      <h3 class="feature-title">
+        <span class="ct ct-d1"><span class="ct-inner">Clean Burn.</span></span>
+        <span class="ct ct-d2"><span class="ct-inner">Clean Conscience.</span></span>
+      </h3>
+      <p class="feature-body">No paraffin. No synthetic dyes. Coconut-soy blend, cotton wick, recyclable glass. Everything we use, we'd put in our own home.</p>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ═══ OUR STORY ═══ -->
+<section class="story">
+  <div class="story-photo reveal">
+    <img src="WhatsApp%20Image%202026-06-03%20at%2021.05.07.jpeg"
+         class="parallax-img" alt="Handcrafted Melted by HeT candle" loading="lazy">
+  </div>
+  <div class="story-content reveal">
+    <p class="story-label">Our Story</p>
+    <blockquote class="story-quote">
+      <span class="ct ct-d1"><span class="ct-inner">"I started making candles at home — not to start</span></span>
+      <span class="ct ct-d2"><span class="ct-inner">a business, just to make my space smell like</span></span>
+      <span class="ct ct-d3"><span class="ct-inner">somewhere I actually wanted to be. People kept</span></span>
+      <span class="ct ct-d4"><span class="ct-inner">asking where I bought them. So here we are."</span></span>
+    </blockquote>
+    <p class="story-attr">— <strong>HeT</strong>, Founder · Melted by HeT</p>
+  </div>
+</section>
+
+
+<!-- ═══ TESTIMONIALS ═══ -->
+<section class="testimonials">
+  <div class="testi-head reveal">
+    <h2 class="testi-title">
+      <span class="ct"><span class="ct-inner">What People Say</span></span>
+    </h2>
+    <div class="testi-nav">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous">&#8592;</button>
+      <button class="nav-btn" id="nextBtn" aria-label="Next">&#8594;</button>
+    </div>
+  </div>
+
+  <div class="testi-viewport" id="viewport">
+    <div class="testi-track" id="track">
+      <div class="testi-card">
+        <div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <p class="testi-text">"Imperial Bloom has completely transformed my living room. I light it every single evening now. It smells like luxury — but the real, handmade kind."</p>
+        <p class="testi-author"><span>Riya S.</span> — Mumbai</p>
+      </div>
+      <div class="testi-card">
+        <div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <p class="testi-text">"I gifted the Velvet Rose to my best friend. She ordered two more for herself the same week. That's the only review you need."</p>
+        <p class="testi-author"><span>Priya M.</span> — Bangalore</p>
+      </div>
+      <div class="testi-card">
+        <div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <p class="testi-text">"The Cold Brew Cozy literally smells like your favourite café. It's almost too pretty to burn — but once you do, you won't stop."</p>
+        <p class="testi-author"><span>Ananya K.</span> — Delhi</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo"><img src="LOGO.png" alt="Melted by HeT"></div>
+      <p class="footer-tagline">Made with intention.<br>Poured by hand.</p>
+    </div>
+    <div>
+      <p class="footer-col-head">Collection</p>
+      <ul class="footer-links">
+        <li><a href="#">Imperial Bloom</a></li>
+        <li><a href="#">Velvet Rose</a></li>
+        <li><a href="#">Sunflower Dough Bowl</a></li>
+        <li><a href="#">Cold Brew Cozy</a></li>
+        <li><a href="#">White Petal Oasis</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-head">Brand</p>
+      <ul class="footer-links">
+        <li><a href="#">Our Story</a></li>
+        <li><a href="#">Ingredients</a></li>
+        <li><a href="#">Custom Orders</a></li>
+        <li><a href="#">Gift Wrapping</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-head">Help</p>
+      <ul class="footer-links">
+        <li><a href="#">Shipping</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">FAQ</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2026 Melted by HeT. All rights reserved.</p>
+    <div class="social-row">
+      <a href="#">Instagram</a>
+      <a href="#">Pinterest</a>
+      <a href="#">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+/* ── 1. Scroll progress bar ── */
+const scrollBar = document.getElementById('scrollBar');
+function updateScrollBar() {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  scrollBar.style.width = Math.min(pct, 100) + '%';
+}
+window.addEventListener('scroll', updateScrollBar, { passive: true });
+
+/* ── 2. Custom cursor (desktop only) ── */
+const dot  = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+let mx = -200, my = -200, rx = -200, ry = -200;
+
+if (!('ontouchstart' in window)) {
+  document.documentElement.classList.add('has-mouse');
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+  const interactEls = ['A', 'BUTTON'];
+  document.addEventListener('mouseover', e => {
+    if (interactEls.includes(e.target.tagName)) ring.classList.add('on-link');
+  });
+  document.addEventListener('mouseout', e => {
+    if (interactEls.includes(e.target.tagName)) ring.classList.remove('on-link');
+  });
+
+  (function animCursor() {
+    dot.style.left  = mx + 'px';
+    dot.style.top   = my + 'px';
+    rx += (mx - rx) * 0.11;
+    ry += (my - ry) * 0.11;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animCursor);
+  })();
+}
+
+/* ── 3. Parallax images ── */
+const parallaxImgs = document.querySelectorAll('.parallax-img');
+
+function updateParallax() {
+  parallaxImgs.forEach(img => {
+    const wrap = img.parentElement;
+    const rect = wrap.getBoundingClientRect();
+    const vh   = window.innerHeight;
+    /* only process if in viewport */
+    if (rect.bottom < 0 || rect.top > vh) return;
+    const progress = (vh / 2 - (rect.top + rect.height / 2)) / vh;
+    img.style.transform = `translateY(${progress * 38}px)`;
+  });
+}
+window.addEventListener('scroll', updateParallax, { passive: true });
+updateParallax();
+
+/* ── 4. Price number scramble ── */
+function scramble(el) {
+  const target = parseInt(el.dataset.target, 10);
+  const digits  = '0123456789';
+  const len     = String(target).length;
+  let   frame   = 0;
+  const total   = 22;
+
+  const timer = setInterval(() => {
+    const progress = frame / total;
+    const scrambled = String(target).split('').map((ch, i) => {
+      return progress > i / len ? ch : digits[Math.floor(Math.random() * 10)];
+    }).join('');
+    el.textContent = '₹' + scrambled;
+    if (++frame > total) { el.textContent = '₹' + target; clearInterval(timer); }
+  }, 38);
+}
+
+/* ── 5. Intersection Observer: cards + curtains + generic reveals ── */
+
+/* Generic sections */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('visible');
+    /* trigger curtain children inside revealed sections */
+    e.target.querySelectorAll('.ct').forEach(ct => ct.classList.add('show'));
+    io.unobserve(e.target);
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* Product cards */
+const cardIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const card = e.target;
+    card.classList.add('show');
+
+    /* curtain reveal for product name — slight delay after card enters */
+    setTimeout(() => {
+      card.querySelectorAll('.ct').forEach(ct => ct.classList.add('show'));
+    }, 160);
+
+    /* price scramble */
+    const priceEl = card.querySelector('.product-price');
+    if (priceEl) setTimeout(() => scramble(priceEl), 380);
+
+    cardIO.unobserve(card);
+  });
+}, { threshold: 0.18 });
+
+document.querySelectorAll('.card-in').forEach(c => cardIO.observe(c));
+
+/* ── 6. Testimonials: arrows + mouse drag ── */
+const viewport = document.getElementById('viewport');
+const track    = document.getElementById('track');
+const prevBtn  = document.getElementById('prevBtn');
+const nextBtn  = document.getElementById('nextBtn');
+
+function cardW() {
+  const c = track.querySelector('.testi-card');
+  return c ? c.offsetWidth + 2 : 300;
+}
+prevBtn.addEventListener('click', () => viewport.scrollBy({ left: -cardW(), behavior: 'smooth' }));
+nextBtn.addEventListener('click', () => viewport.scrollBy({ left:  cardW(), behavior: 'smooth' }));
+
+let dragging = false, startX = 0, startScroll = 0;
+viewport.addEventListener('mousedown', e => {
+  dragging = true; startX = e.clientX; startScroll = viewport.scrollLeft;
+  viewport.style.userSelect = 'none';
+});
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  viewport.scrollLeft = startScroll - (e.clientX - startX);
+});
+document.addEventListener('mouseup', () => { dragging = false; viewport.style.userSelect = ''; });
+</script>
+
+</body>
+</html>
